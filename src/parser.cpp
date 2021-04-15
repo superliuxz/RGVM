@@ -7,7 +7,19 @@
 namespace RGVM {
 
 using namespace boost::spirit;
-using namespace boost::phoenix;
+namespace phx = boost::phoenix;
+
+namespace {
+RegexPtr CreateRegexNode(RegexType type, char ch, RegexPtr left,
+                         RegexPtr right) {
+  RegexPtr rp = std::make_shared<RegexNode>();
+  rp->type = type;
+  rp->c = ch;
+  rp->left = std::move(left);
+  rp->right = std::move(right);
+  return rp;
+}
+}  // namespace
 
 bool operator==(const RegexPtr& a, const RegexPtr& b) {
   if (!a.get() && !b.get()) return true;
@@ -36,61 +48,37 @@ bool operator==(const RegexPtr& a, const RegexPtr& b) {
 }
 
 RegexPtr AltRegex(RegexPtr left, RegexPtr right) {
-  RegexPtr rp = std::make_shared<RegexNode>();
-  rp->type = RegexType::Alt;
-  rp->left = std::move(left);
-  rp->right = std::move(right);
-  return rp;
+  return CreateRegexNode(RegexType::Alt, 0, std::move(left), std::move(right));
 }
 
 RegexPtr ConcatRegex(RegexPtr left, RegexPtr right) {
-  RegexPtr rp = std::make_shared<RegexNode>();
-  rp->type = RegexType::Concat;
-  rp->left = std::move(left);
-  rp->right = std::move(right);
-  return rp;
+  return CreateRegexNode(RegexType::Concat, 0, std::move(left),
+                         std::move(right));
 }
 
 RegexPtr StarRegex(RegexPtr left) {
-  RegexPtr rp = std::make_shared<RegexNode>();
-  rp->type = RegexType::Star;
-  rp->left = std::move(left);
-  return rp;
+  return CreateRegexNode(RegexType::Star, 0, std::move(left), nullptr);
 }
 
 RegexPtr PlusRegex(RegexPtr left) {
-  RegexPtr rp = std::make_shared<RegexNode>();
-  rp->type = RegexType::Plus;
-  rp->left = std::move(left);
-  return rp;
+  return CreateRegexNode(RegexType::Plus, 0, std::move(left), nullptr);
 }
 
 RegexPtr QuestRegex(RegexPtr left) {
-  RegexPtr rp = std::make_shared<RegexNode>();
-  rp->type = RegexType::Quest;
-  rp->left = std::move(left);
-  return rp;
+  return CreateRegexNode(RegexType::Quest, 0, std::move(left), nullptr);
 }
 
 RegexPtr ParenRegex(RegexPtr left) {
-  RegexPtr rp = std::make_shared<RegexNode>();
-  rp->type = RegexType::Paren;
-  rp->left = std::move(left);
-  return rp;
+  return CreateRegexNode(RegexType::Paren, 0, std::move(left), nullptr);
 }
 
 // Lit and Dot are leaves.
 RegexPtr LitRegex(char c) {
-  RegexPtr rp = std::make_shared<RegexNode>();
-  rp->type = RegexType::Lit;
-  rp->c = c;
-  return rp;
+  return CreateRegexNode(RegexType::Lit, c, nullptr, nullptr);
 }
 
 RegexPtr DotRegex() {
-  RegexPtr rp = std::make_shared<RegexNode>();
-  rp->type = RegexType::Dot;
-  return rp;
+  return CreateRegexNode(RegexType::Dot, 0, nullptr, nullptr);
 }
 
 void PrintRegexpImpl(const RegexPtr& rp, int depth) {
@@ -148,19 +136,19 @@ struct RegexGrammar : qi::grammar<Iterator, RegexPtr()> {
     // before single rule.
 
     // clang-format off
-    alt = (concat >> '|' >> alt)[_val = bind(AltRegex, _1, _2)] |
+    alt = (concat >> '|' >> alt)[_val = phx::bind(AltRegex, _1, _2)] |
           concat[_val = _1];
 
-    concat = (repeat >> concat)[_val = bind(ConcatRegex, _1, _2)] |
+    concat = (repeat >> concat)[_val = phx::bind(ConcatRegex, _1, _2)] |
              repeat[_val = _1];
 
-    repeat = (single >> '*')[_val = bind(StarRegex, _1)] |
-             (single >> '+')[_val = bind(PlusRegex, _1)] |
-             (single >> '?')[_val = bind(QuestRegex, _1)] |
+    repeat = (single >> '*')[_val = phx::bind(StarRegex, _1)] |
+             (single >> '+')[_val = phx::bind(PlusRegex, _1)] |
+             (single >> '?')[_val = phx::bind(QuestRegex, _1)] |
              single[_val = _1];
 
-    single = ('(' >> alt >> ')')[_val = bind(ParenRegex, _1)] |
-             (qi::alnum)[_val = bind(LitRegex, _1)] |
+    single = ('(' >> alt >> ')')[_val = phx::bind(ParenRegex, _1)] |
+             (qi::alnum)[_val = phx::bind(LitRegex, _1)] |
              (qi::char_('.'))[_val = DotRegex()];
     // clang-format on
   }

@@ -3,7 +3,7 @@
 //
 
 #include "gtest/gtest.h"
-#include "parser.h"
+#include "RGVM.h"
 
 using namespace RGVM;
 
