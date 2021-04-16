@@ -23,10 +23,24 @@ struct Instruction {
   unsigned saved;  // Save
 };
 
-// Calculate the number of instructions required, given an AST root.
+// For testing.
+bool operator==(const Instruction& a, const Instruction& b) {
+  return a.opcode == b.opcode && a.x == b.x && a.y == b.y && a.jmp == b.jmp &&
+         a.saved == b.saved;
+}
+
+// For testing.
+Instruction SplitInstr(unsigned x, unsigned y);
+Instruction JmpInstr(unsigned j);
+Instruction CharInstr(char c);
+Instruction AnyInstr();
+Instruction SaveInstr(unsigned saved);
+Instruction MatchInstr();
+
+// Calculates the number of instructions required, given an AST root.
 unsigned Count(const RegexPtr& rp);
 
-// Compile
+// Compiles the AST rooted at |rp| into a vector of instructions.
 std::vector<Instruction> Compile(const RegexPtr& rp);
 
 void PrintInstructions(const std::vector<Instruction>& instructions);

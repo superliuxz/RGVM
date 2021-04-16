@@ -116,6 +116,7 @@ void PrintRegexpImpl(const RegexPtr& rp, int depth) {
       break;
     case RegexType::Dot:
       std::cout << "Dot" << std::endl;
+      break;
     default:
       assert(false);
   }
