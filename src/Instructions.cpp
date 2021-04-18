@@ -150,12 +150,15 @@ std::vector<Instruction> Compile(const RegexPtr& rp) {
 
   CompileImpl(rp, st, instructions);
   instructions.back() = MatchInstr();
-
+#ifdef DEBUG
+  PrintInstructions(instructions);
+  std::cout << std::endl;
+#endif
   return instructions;
 }
 
 void PrintInstructions(const std::vector<Instruction>& instructions) {
-  for (auto i = 0; i < instructions.size(); ++i) {
+  for (unsigned i = 0; i < instructions.size(); ++i) {
     const auto& instr = instructions[i];
     std::cout << "I" << i << ": ";
     switch (instr.opcode) {

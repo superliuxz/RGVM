@@ -11,16 +11,23 @@ int main() {
   const std::string target_string = "a233b";
 
   RGVM::VM vm;
-  vm.Compile(regexp);
+  if (!vm.Compile(regexp)) {
+    std::cerr << regexp << " fails to compile..." << std::endl;
+    return 1;
+  }
 
   if (!vm.Search(target_string)) {
     std::cerr << "Search failed..." << std::endl;
     return 1;
   }
 
-  std::cout << "Captures:" << std::endl;
-  for (const auto& capture : vm.Captures()) {
-    std::cout << capture << std::endl;
+  std::cout << "Search " << regexp << " in " << target_string << " successful."
+            << std::endl;
+  if (!vm.Captures().empty()) {
+    std::cout << "Captures:" << std::endl;
+    for (const auto& capture : vm.Captures()) {
+      std::cout << capture << std::endl;
+    }
   }
 
   return 0;

@@ -25,7 +25,7 @@ bool VM::Search(const std::string& target_string) {
 
   // <= because we need one extra iteration to complete all the threads in
   // |current| queue.
-  for (auto i = 0; i <= target_string.size(); ++i) {
+  for (unsigned i = 0; i <= target_string.size(); ++i) {
     std::queue<Thread> next;
 
     current.push(Thread(0));
@@ -37,12 +37,13 @@ bool VM::Search(const std::string& target_string) {
       auto instruction = instructions_[thread.pc];
       switch (instruction.opcode) {
         case Char:
-          if (target_string[i] != instruction.c) break;
-          next.push(Thread(thread.pc + 1, thread.saved));
+          if (target_string[i] == instruction.c) {
+            next.push(Thread(thread.pc + 1, thread.saved));
+          }
           break;
         case Match: {
           std::vector<std::string> temp;
-          for (auto j = 0; j < thread.saved.size(); j += 2) {
+          for (unsigned j = 0; j < thread.saved.size(); j += 2) {
             auto begin = target_string.cbegin() + thread.saved[j];
             auto end = target_string.cbegin() + thread.saved[j + 1];
             temp.emplace_back(begin, end);

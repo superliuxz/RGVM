@@ -157,7 +157,12 @@ struct RegexGrammar : qi::grammar<Iterator, RegexPtr()> {
 
 bool Parse(const std::string& regexp, RegexPtr& rp) {
   RegexGrammar<std::string::const_iterator> grammar;
-  return qi::phrase_parse(regexp.begin(), regexp.end(), grammar, ascii::space,
-                          rp);
+  auto ok =
+      qi::phrase_parse(regexp.begin(), regexp.end(), grammar, ascii::space, rp);
+#ifdef DEBUG
+  PrintRegexpAST(rp);
+  std::cout << std::endl;
+#endif
+  return ok;
 }
 }  // namespace RGVM
