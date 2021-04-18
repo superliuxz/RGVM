@@ -17,8 +17,17 @@ struct Thread {
   std::vector<unsigned> saved;  // string indices of the capturing groups.
 
   explicit Thread(unsigned pc) : pc(pc) {}
-  Thread(unsigned pc, std::vector<unsigned> saved)
+  Thread(unsigned pc, std::vector<unsigned>& saved)
       : pc(pc), saved(std::move(saved)) {}
+
+  Thread(Thread&& t) {
+    this->pc = t.pc;
+    this->saved = std::move(t.saved);
+  }
+  Thread& operator=(const Thread&&) = delete;
+
+  Thread(const Thread&) = delete;
+  Thread& operator=(const Thread&) = delete;
 };
 
 class VM {

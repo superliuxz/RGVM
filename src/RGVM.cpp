@@ -28,17 +28,16 @@ bool VM::Search(const std::string& target_string) {
   for (unsigned i = 0; i <= target_string.size(); ++i) {
     std::queue<Thread> next;
 
-    current.push(Thread(0));
+    current.emplace(Thread(0));
 
     while (!current.empty()) {
-      auto thread = current.front();
-      current.pop();
+      auto& thread = current.front();
 
       auto instruction = instructions_[thread.pc];
       switch (instruction.opcode) {
         case Char:
           if (target_string[i] == instruction.c) {
-            next.push(Thread(thread.pc + 1, thread.saved));
+            next.emplace(Thread(thread.pc + 1, thread.saved));
           }
           break;
         case Match: {
@@ -53,24 +52,29 @@ bool VM::Search(const std::string& target_string) {
           break;
         }
         case Jmp:
-          current.push(Thread(instruction.jmp, thread.saved));
+          current.emplace(Thread(instruction.jmp, thread.saved));
           break;
         case Split:  // TODO: properly implement greedy matching.
-          current.push(Thread(instruction.x, thread.saved));
-          current.push(Thread(instruction.y, thread.saved));
+        {
+          std::vector<unsigned> copy(thread.saved);
+          current.emplace(Thread(instruction.x, thread.saved));
+          current.emplace(Thread(instruction.y, copy));
           break;
+        }
         case Any:
-          next.push(Thread(thread.pc + 1, thread.saved));
+          next.emplace(Thread(thread.pc + 1, thread.saved));
           break;
         case Save:
           if (thread.saved.size() <= instruction.saved)
             thread.saved.resize(instruction.saved + 1);
           thread.saved[instruction.saved] = i;
-          current.push(Thread(thread.pc + 1, thread.saved));
+          current.emplace(Thread(thread.pc + 1, thread.saved));
           break;
         default:
           assert(false);
       }
+
+      current.pop();
     }
 
     current = std::move(next);
