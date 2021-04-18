@@ -33,7 +33,7 @@ bool VM::Search(const std::string& target_string) {
     while (!current.empty()) {
       auto& thread = current.front();
 
-      auto instruction = instructions_[thread.pc];
+      const auto& instruction = instructions_[thread.pc];
       switch (instruction.opcode) {
         case Char:
           if (target_string[i] == instruction.c) {

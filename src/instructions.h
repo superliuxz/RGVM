@@ -21,6 +21,14 @@ struct Instruction {
   unsigned x, y;   // Split
   unsigned jmp;    // Jmp
   unsigned saved;  // Save
+
+  Instruction() = default;
+
+  Instruction(const Instruction&) = delete;
+  Instruction& operator=(const Instruction&) = delete;
+
+  Instruction(Instruction&&) = default;
+  Instruction& operator=(Instruction&&) = default;
 };
 
 // For testing.
