@@ -24,10 +24,7 @@ struct Instruction {
 };
 
 // For testing.
-bool operator==(const Instruction& a, const Instruction& b) {
-  return a.opcode == b.opcode && a.x == b.x && a.y == b.y && a.jmp == b.jmp &&
-         a.saved == b.saved;
-}
+bool operator==(const Instruction& a, const Instruction& b);
 
 // For testing.
 Instruction SplitInstr(unsigned x, unsigned y);

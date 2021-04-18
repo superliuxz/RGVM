@@ -30,6 +30,11 @@ Instruction CreateInstr(Opcode op, char c, unsigned x, unsigned y, unsigned j,
 }
 }  // namespace
 
+bool operator==(const Instruction& a, const Instruction& b) {
+  return a.opcode == b.opcode && a.x == b.x && a.y == b.y && a.jmp == b.jmp &&
+         a.saved == b.saved;
+}
+
 unsigned Count(const RegexPtr& rp) {
   if (rp == nullptr) return 0;
   switch (rp->type) {
