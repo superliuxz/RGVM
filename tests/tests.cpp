@@ -245,6 +245,176 @@ TEST(RGVM, Compiler_Paren) {
                                      SaveInstr(1), MatchInstr()));
 }
 
+TEST(RGVM, BadRegexp) {
+  VM vm;
+  const std::string bad_regexp = "(a";
+  EXPECT_FALSE(vm.Compile(bad_regexp));
+}
+
+TEST(RGVM, Search_SimpleChar) {
+  VM vm;
+  const std::string regexp = "ab";
+  const std::string string = "aabbb";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  EXPECT_TRUE(vm.Captures().empty());
+}
+
+TEST(RGVM, Search_SimpleStar) {
+  VM vm;
+  const std::string regexp = "ab*";
+  const std::string string = "aabbb";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  EXPECT_TRUE(vm.Captures().empty());
+}
+
+TEST(RGVM, Search_SimplePlus) {
+  VM vm;
+  const std::string regexp = "ab+";
+  const std::string string = "aabbb";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  EXPECT_TRUE(vm.Captures().empty());
+}
+
+TEST(RGVM, Search_SimpleQuest) {
+  VM vm;
+  const std::string regexp = "ab?";
+  const std::string string = "aabbb";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  EXPECT_TRUE(vm.Captures().empty());
+}
+
+TEST(RGVM, Search_SimpleDot) {
+  VM vm;
+  const std::string regexp = "a.";
+  const std::string string = "aabbb";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  EXPECT_TRUE(vm.Captures().empty());
+}
+
+TEST(RGVM, Search_GreedyCapture_1) {
+  VM vm;
+  std::string regexp = "(23+)";
+  const std::string string = "a222223333b";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("23333"));
+}
+
+TEST(RGVM, Search_GreedyCapture_2) {
+  VM vm;
+  const std::string regexp = "(233*)";
+  const std::string string = "a222223333b";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("23333"));
+}
+
+TEST(RGVM, Search_GreedyCapture_3) {
+  VM vm;
+  const std::string regexp = "(2+3)";
+  const std::string string = "a222223333b";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("222223"));
+}
+
+TEST(RGVM, Search_GreedyCapture_4) {
+  VM vm;
+  const std::string regexp = "(2*3)";
+  const std::string string = "a222223333b";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("222223"));
+}
+
+TEST(RGVM, Search_LazyCapture_1) {
+  VM vm;
+  vm.SetGreedy(false);
+  std::string regexp = "(23+)";
+  const std::string string = "a222223333b";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("23"));
+
+  regexp = "(233*)";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("23"));
+}
+
+TEST(RGVM, Search_LazyCapture_2) {
+  VM vm;
+  vm.SetGreedy(false);
+  std::string regexp = "(233*)";
+  const std::string string = "a222223333b";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("23"));
+}
+
+TEST(RGVM, Search_LazyCapture_3) {
+  VM vm;
+  vm.SetGreedy(false);
+  const std::string regexp = "(2+3)";
+  const std::string string = "a222223333b";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("222223"));
+}
+
+TEST(RGVM, Search_LazyCapture_4) {
+  VM vm;
+  vm.SetGreedy(false);
+  const std::string regexp = "(2*3)";
+  const std::string string = "a222223333b";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("222223"));
+}
+
+TEST(RGVM, Search_MultipleGreedyCapture_1) {
+  VM vm;
+  const std::string regexp = "(23+)4(5+)";
+  const std::string string = "a22222333345555555b";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("23333", "5555555"));
+}
+
+TEST(RGVM, Search_MultipleGreedyCapture_2) {
+  VM vm;
+  const std::string regexp = "(23*)4(5*)";
+  const std::string string = "a22222333345555555b";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("23333", "5555555"));
+}
+
+TEST(RGVM, Search_MultipleLazyCapture_1) {
+  VM vm;
+  vm.SetGreedy(false);
+  const std::string regexp = "(23+)4(5+)";
+  const std::string string = "a22222333345555555b";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("23333", "5"));
+}
+
+TEST(RGVM, Search_MultipleLazyCapture_2) {
+  VM vm;
+  vm.SetGreedy(false);
+  const std::string regexp = "(23*)4(5*)";
+  const std::string string = "a22222333345555555b";
+  EXPECT_TRUE(vm.Compile(regexp));
+  EXPECT_TRUE(vm.Search(string));
+  ASSERT_THAT(vm.Captures(), ::testing::ElementsAre("23333", ""));
+}
+
 int main(int argc, char *argv[]) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -18,13 +18,14 @@ struct Instruction {
   Opcode opcode;
 
   char c;          // Char
-  unsigned x, y;   // Split
+  unsigned x, y;   // Fork
   unsigned jmp;    // Jmp
   unsigned saved;  // Save
 
   Instruction() = default;
 
-  Instruction(const Instruction&) = delete;
+  // Copy ctor is required by EXPECT_THAT(..., ::testing::ElementsAre(...))
+  Instruction(const Instruction&) = default;
   Instruction& operator=(const Instruction&) = delete;
 
   Instruction(Instruction&&) = default;
