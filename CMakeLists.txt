@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.17)
+# https://cmake.org/cmake/help/latest/variable/CMAKE_OSX_ARCHITECTURES.html
+set(CMAKE_OSX_ARCHITECTURES "arm64")
 project(RGVM)
 
 set(CMAKE_CXX_STANDARD 17)
